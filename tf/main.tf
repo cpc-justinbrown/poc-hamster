@@ -21,6 +21,13 @@ resource "azurerm_service_plan" "asp" {
   sku_name            = "B1"
 }
 
+resource "azurerm_application_insights" "appi" {
+  name                = "appiHAMSTER"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  application_type    = "web"
+}
+
 resource "azurerm_linux_function_app" "af" {
   name                        = "faHAMSTER"
   resource_group_name         = azurerm_resource_group.rg.name
@@ -29,12 +36,13 @@ resource "azurerm_linux_function_app" "af" {
   storage_account_name        = azurerm_storage_account.sa.name
   storage_account_access_key  = azurerm_storage_account.sa.primary_access_key
 
-
   identity {
     type = "SystemAssigned"
   }
 
   site_config {
+    application_insights_connection_string = azurerm_application_insights.appi.connection_string
+    application_insights_key = azurerm_application_insights.appi.instrumentation_key
     application_stack {
       python_version = 3.9
     }
