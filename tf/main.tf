@@ -9,16 +9,8 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  network_rules {
-    default_action             = "Deny"
-    ip_rules                   = ["64.129.107.15"]
-  }
-
-  routing {
-    choice = "MicrosoftRouting"
-    publish_microsoft_endpoints = true
-  }
+  account_kind             = "Storage"
+  min_tls_version          = "TLS1_2"
 }
 
 resource "azurerm_service_plan" "asp" {
@@ -26,16 +18,17 @@ resource "azurerm_service_plan" "asp" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   os_type             = "Linux"
-  sku_name            = "F1"
+  sku_name            = "B1"
 }
 
 resource "azurerm_linux_function_app" "af" {
-  name                = "faHAMSTER"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  name                        = "faHAMSTER"
+  resource_group_name         = azurerm_resource_group.rg.name
+  location                    = azurerm_resource_group.rg.location
+  service_plan_id             = azurerm_service_plan.asp.id
+  storage_account_name        = azurerm_storage_account.sa.name
+  storage_account_access_key  = azurerm_storage_account.sa.primary_access_key
 
-  storage_account_name = azurerm_storage_account.sa.name
-  service_plan_id      = azurerm_service_plan.asp.id
 
   identity {
     type = "SystemAssigned"
